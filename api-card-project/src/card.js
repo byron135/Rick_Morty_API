@@ -24,6 +24,7 @@ const Card = () => {
   const [input, setInput] = useState("");
   const [search, setSearch] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
+  const [showMore, setShowMore] = useState(false);
 
   const { loading, error, data } = useQuery(GET_CHARACTERS, {
     variables: { name: search },
@@ -37,6 +38,11 @@ const Card = () => {
   const handleSearchClick = () => {
     setSearch(input);
     setHasSearched(true);
+    setShowMore(false);
+  };
+
+  const handleShowMoreClick = () => {
+    setShowMore(true);
   };
 
   if (loading) return <p>Loading...</p>;
@@ -52,24 +58,33 @@ const Card = () => {
       />
       <button onClick={handleSearchClick}>Search</button>
       {hasSearched && data && data.characters.results.length > 0
-        ? data.characters.results.map((character) => (
-            <div key={character.id} className="card">
-              <img src={character.image} alt={character.name} />
-              <div className="card-text">
-                <h2>{character.name}</h2>
-                <p>Last Known Location: {character.location.name}</p>
-                <p>First Seen In: {character.episode[0].name}</p>
-                <div>
-                  <h3>Episodes:</h3>
-                  {character.episode.map((episode) => (
-                    <p key={episode.id}>
-                      {episode.name} ({episode.episode})
-                    </p>
-                  ))}
+        ? data.characters.results
+            .slice(0, showMore ? undefined : 1)
+            .map((character, index) => (
+              <div key={character.id} className="card">
+                <img src={character.image} alt={character.name} />
+                <div className="card-text">
+                  <h2>{character.name}</h2>
+                  {index === 0 &&
+                    !showMore &&
+                    data.characters.results.length > 1 && (
+                      <button onClick={handleShowMoreClick}>
+                        Show More About This Character
+                      </button>
+                    )}
+                  <p>Last Known Location: {character.location.name}</p>
+                  <p>First Seen In: {character.episode[0].name}</p>
+                  <div>
+                    <h3>Episodes:</h3>
+                    {character.episode.map((episode) => (
+                      <p key={episode.id}>
+                        {episode.name} ({episode.episode})
+                      </p>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            ))
         : hasSearched && (
             <div>
               <img
